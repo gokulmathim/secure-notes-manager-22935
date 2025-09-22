@@ -12,19 +12,13 @@ except Exception:
 
 from .routes.health import blp as health_blp
 from .routes.notes import blp as notes_blp
-from .routes.taxonomy import blp as taxonomy_blp
-from .models import db
+
 
 app = Flask(__name__)
 app.url_map.strict_slashes = False
 
 # CORS: allow all origins for demo; adjust in production
 CORS(app, resources={r"/*": {"origins": "*"}})
-
-# Database configuration (SQLite by default)
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///notes.db")
-app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 # Ocean Professional API metadata and OpenAPI config
 app.config["API_TITLE"] = "Secure Notes API"
@@ -38,19 +32,11 @@ app.config["OPENAPI_SWAGGER_UI_URL"] = "https://cdn.jsdelivr.net/npm/swagger-ui-
 app.config["OPENAPI_TAGS"] = [
     {"name": "Health Check", "description": "Health check route"},
     {"name": "Notes", "description": "Secure notes endpoints (Ocean Professional theme)"},
-    {"name": "Folders", "description": "Manage folders to organize notes"},
-    {"name": "Tags", "description": "Manage tags/labels for notes"},
 ]
-
-# Initialize DB
-db.init_app(app)
-with app.app_context():
-    db.create_all()
 
 api = Api(app)
 api.register_blueprint(health_blp)
 api.register_blueprint(notes_blp)
-api.register_blueprint(taxonomy_blp)
 
 
 # PUBLIC_INTERFACE
@@ -73,25 +59,8 @@ def api_help():
                 "detail": "GET /notes/{id}",
                 "update": "PATCH /notes/{id}",
                 "delete": "DELETE /notes/{id}",
-                "search": "GET /notes/?q=keyword&tags=tag1,tag2&from=ISO&to=ISO",
-                "sync_pull": "GET /notes/sync",
-                "sync_push": "POST /notes/sync",
-            },
-            "taxonomy_endpoints": {
-                "folders": {
-                    "list": "GET /folders/",
-                    "create": "POST /folders/",
-                    "update": "PATCH /folders/{id}",
-                    "delete": "DELETE /folders/{id}",
-                },
-                "tags": {
-                    "list": "GET /tags/",
-                    "create": "POST /tags/",
-                    "delete": "DELETE /tags/{id}",
-                },
             },
             "env_required": ["NOTES_ENCRYPTION_KEY"],
-            "env_optional": ["DATABASE_URL"],
             "theme": {
                 "name": "Ocean Professional",
                 "primary": "#2563EB",
@@ -100,12 +69,6 @@ def api_help():
                 "background": "#f9fafb",
                 "surface": "#ffffff",
                 "text": "#111827",
-                "modes": ["light", "dark"],
-                "default_mode": "light",
-            },
-            "sync": {
-                "strategy": "basic revision + last_updated timestamp",
-                "conflict_policy": "last-writer-wins by default; client may send revision to detect conflicts",
             },
         }
     )

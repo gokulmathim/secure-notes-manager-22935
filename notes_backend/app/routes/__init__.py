@@ -13,8 +13,4 @@ def get_available_blueprints():
         from .notes import blp as notes
     except Exception:
         notes = None
-    try:
-        from .taxonomy import blp as taxonomy
-    except Exception:
-        taxonomy = None
-    return {"health": health, "notes": notes, "taxonomy": taxonomy}
+    return {"health": health, "notes": notes}
